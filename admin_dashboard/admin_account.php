@@ -1,3 +1,27 @@
+<?php
+session_start();
+require_once '../config/config.php';
+
+// Redirect to login if not logged in
+if (!isset($_SESSION['student_id'])) {
+    header('Location: ../landingpage/login.php');
+    exit;
+}
+
+// Fetch student data from DB
+$stmt = mysqli_prepare($conn, "SELECT * FROM students WHERE student_id = ?");
+mysqli_stmt_bind_param($stmt, 's', $_SESSION['student_id']);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+$user = mysqli_fetch_assoc($result);
+$picPath = $user['profile_pic'] 
+    ? '../uploads/profile_pics/' . $user['profile_pic']
+    : null;
+
+// Get initials for avatar
+$initials = strtoupper(substr($user['first_name'], 0, 1) . substr($user['last_name'], 0, 1));
+$fullName  = $user['first_name'] . ' ' . $user['last_name'];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,6 +46,11 @@
       background: linear-gradient(180deg,#eef2f8 0%,#f8fafc 100%);
       color: var(--text);
     }
+      .profile-avatar {
+      width: 52px; height: 52px; border-radius: 16px;
+      background: linear-gradient(135deg,#7c3aed,#2563eb);
+      color: #fff; place-items: center; font-weight: 800; display: grid;
+    }
     button { font-family: inherit; cursor: pointer; }
     a { text-decoration: none; color: inherit; }
 
@@ -30,7 +59,7 @@
 
     /* ── Sidebar ── */
     .sidebar {
-      background: linear-gradient(180deg,#3b0d51 0%,#14132b 100%);
+      background: black;
       color: #f8fafc; padding: 32px 24px;
       display: flex; flex-direction: column; gap: 32px;
       position: sticky; top: 0; height: 100vh;
@@ -88,11 +117,6 @@
       padding: 14px 18px; background: #fff;
       border: 1px solid var(--border); border-radius: 18px;
     }
-    .profile-avatar {
-      width: 52px; height: 52px; border-radius: 16px;
-      background: linear-gradient(135deg,#7c3aed,#2563eb);
-      color: #fff; display: grid; place-items: center; font-weight: 800;
-    }
     .profile-name { margin: 0; font-weight: 700; }
     .profile-email { margin: 0; color: var(--text-muted); font-size: 13px; }
 
@@ -109,12 +133,13 @@
       padding: 32px 36px; display: flex; align-items: center; gap: 24px;
     }
     .banner-avatar {
-      width: 80px; height: 80px; border-radius: 50%;
-      background: linear-gradient(135deg,#d97706,#b45309);
-      color: #fff; display: grid; place-items: center;
-      font-size: 28px; font-weight: 800; flex-shrink: 0;
+      width: 150px; height: 150px; border-radius: 50%;
+     background: linear-gradient(135deg,#d97706,#b45309);
+     color: #fff; display: grid; place-items: center;
+       font-size: 28px; font-weight: 800; flex-shrink: 0;
       border: 3px solid rgba(255,255,255,.2);
-    }
+       overflow: hidden;
+      }
     .banner-info h2 { margin: 0 0 6px; color: #fff; font-size: 22px; font-weight: 800; }
     .banner-info p  { margin: 0 0 4px; color: rgba(255,255,255,.8); font-size: 14px; }
     .banner-info span { color: rgba(255,255,255,.6); font-size: 13px; }
@@ -172,17 +197,14 @@
       </div>
     </div>
     <nav class="sidebar-nav" aria-label="Dashboard navigation">
-      <a href="dashboard.html"   class="nav-item"><span class="nav-item-icon">🏠</span>Dashboard</a>
-      <a href="events.html"      class="nav-item"><span class="nav-item-icon">📅</span>Events</a>
-      <a href="SchoolSched.html" class="nav-item"><span class="nav-item-icon">📋</span>Class Schedule</a>
-      <a href="grades.html"      class="nav-item"><span class="nav-item-icon">📝</span>Grades</a>
-      <a href="digital-id.html"  class="nav-item"><span class="nav-item-icon">🪪</span>Digital ID</a>
-      <a href="account.html"     class="nav-item active"><span class="nav-item-icon">👤</span>Account</a>
+       <a href="admin_dashboard.php"    class="nav-item"><span class="nav-item-icon">🏠</span>Admin Dashboard</a>
+      <a href="admin_events.php"       class="nav-item"><span class="nav-item-icon">📅</span>Add Events</a>
+      <a href="admin_sched.php" class="nav-item"><span class="nav-item-icon">📋</span>Add Schedule</a>
+      <a href="admin_grades.php"       class="nav-item"><span class="nav-item-icon">📝</span>Add Grades</a>
+      <a href="admin_account.php"    class="nav-item" active><span class="nav-item-icon">👤</span>Account</a>
     </nav>
     <div class="sidebar-footer">
-      <a href="../landingpage/home.html">
-        <button type="button" class="logout-button">🚪 Logout</button>
-      </a>
+        <button type="button" class="logout-button" onclick="window.location.href='../landingpage/logout.php'"> Logout</button>
     </div>
   </aside>
 
@@ -193,26 +215,68 @@
       <div class="topbar-right">
         <button type="button" class="chatbot-btn" title="AI Assistant" onclick="alert('Chatbot coming soon!')">🤖</button>
         <div class="profile-card">
-          <div class="profile-avatar">NL</div>
+          <div class="profile-avatar" style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden;">
+            <?php if ($picPath): ?>
+              <img src="<?= htmlspecialchars($picPath) ?>" alt="Profile Picture" style="width:100%; height:100%; object-fit:cover;" />
+            <?php else: ?>
+              <?= $initials ?>
+            <?php endif; ?>
+          </div>
           <div>
-            <p class="profile-name">Neil Longbian</p>
-            <p class="profile-email">neillongbian@gmail.com</p>
+            <p class="profile-name"><?= htmlspecialchars($fullName) ?></p>
+            <p class="profile-email"><?= htmlspecialchars($user['email']) ?></p>
           </div>
         </div>
       </div>
     </header>
-
     <div class="account-card">
 
       <!-- Profile Banner -->
       <div class="profile-banner">
-        <div class="banner-avatar">NL</div>
+        <div class="banner-avatar">
+  <?php if ($picPath): ?>
+    <img src="<?= htmlspecialchars($picPath) ?>" alt="Profile" 
+         style="width:100%; height:100%; object-fit:cover; display:block;" />
+  <?php else: ?>
+    <?= $initials ?>
+  <?php endif; ?>
+</div>
         <div class="banner-info">
-          <h2>Neil Longbian</h2>
-          <p>Bachelor of Science in Computer Science</p>
-          <span>Student ID: 2024-00001</span>
+          <h2><?= htmlspecialchars($fullName) ?></h2>
+          <p><?= htmlspecialchars($user['course']) ?></p>
+          <span>Student ID: <?= htmlspecialchars($user['student_id']) ?></span>
         </div>
       </div>
+      <!-- Profile Picture Upload -->
+    <div style="padding: 20px 36px; border-bottom: 1px solid var(--border); display:flex; align-items:center; gap:16px;">
+          <form action="upload-profile-pic.php" method="POST" enctype="multipart/form-data"
+          style="display:flex; align-items:center; gap:12px;">
+         <label for="profile_pic" style="
+          padding: 10px 20px; background: #1d4ed8; color: white;
+            border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600;">
+             📷 Choose Photo
+          </label>
+         <input type="file" id="profile_pic" name="profile_pic" accept="image/*"
+           style="display:none;" onchange="this.form.submit()" />
+             <span style="font-size:13px; color:var(--text-muted);">JPG, PNG, WEBP · Max 2MB</span>
+                    </form>
+                    <?php if ($user['profile_pic']): ?>
+  <a href="remove-profile-pic.php" 
+     onclick="return confirm('Are you sure you want to remove your profile picture?')"
+     style="padding: 10px 20px; background: #ef4444; color: white;
+            border-radius: 10px; font-size: 14px; font-weight: 600;">
+    🗑️ Remove Photo
+  </a>
+<?php endif; ?>
+
+<?php if (isset($_GET['removed'])): ?>
+  <span style="color:red; font-size:13px; font-weight:600;">🗑️ Photo removed!</span>
+<?php endif; ?>
+
+  <?php if (isset($_GET['success'])): ?>
+    <span style="color:green; font-size:13px; font-weight:600;">✅ Photo updated!</span>
+  <?php endif; ?>
+</div>
 
       <!-- Personal Information Form -->
       <div class="form-section">
@@ -221,55 +285,55 @@
 
           <div class="form-group">
             <label for="firstName">First Name</label>
-            <input type="text" id="firstName" value="Neil" />
+            <input type="text" id="firstName" value="<?= htmlspecialchars($user['first_name']) ?>"  readonly/>
           </div>
 
           <div class="form-group">
             <label for="lastName">Last Name</label>
-            <input type="text" id="lastName" value="Longbian" />
+            <input type="text" id="lastName" value="<?= htmlspecialchars($user['last_name']) ?>"  readonly/>
           </div>
 
           <div class="form-group">
             <label for="email">Email Address</label>
-            <input type="email" id="email" value="neillongbian@gmail.com" />
+            <input type="email" id="email" value="<?= htmlspecialchars($user['email']) ?>"  readonly/>
           </div>
 
           <div class="form-group">
             <label for="phone">Phone Number</label>
-            <input type="tel" id="phone" value="+63 912 345 6789" />
+            <input type="tel" id="phone" value="<?= htmlspecialchars($user['phone_number']) ?>"  readonly/>
           </div>
 
           <div class="form-group">
             <label for="studentId">Student ID</label>
-            <input type="text" id="studentId" value="2024-00001" readonly
+            <input type="text" id="studentId" value="<?= htmlspecialchars($user['student_id']) ?>" readonly
               style="background:#f1f5f9;color:#64748b;cursor:not-allowed;" />
           </div>
 
           <div class="form-group">
             <label for="birthday">Birthday</label>
-            <input type="date" id="birthday" value="2003-01-15" />
+            <input type="date" id="birthday" value="<?= htmlspecialchars($user['birthday']) ?>"  readonly/>
           </div>
 
           <div class="form-group">
             <label for="gender">Gender</label>
-            <input type="text" id="gender" value="Male" />
+            <input type="text" id="gender" value="<?= htmlspecialchars($user['gender']) ?>"  readonly/>
           </div>
 
           <div class="form-group">
             <label for="yearLevel">Year Level</label>
-            <input type="text" id="yearLevel" value="3rd Year" readonly
+            <input type="text" id="yearLevel" value="<?= htmlspecialchars($user['year_level']) ?>" readonly
               style="background:#f1f5f9;color:#64748b;cursor:not-allowed;" />
           </div>
 
           <div class="form-group full">
             <label for="program">Program</label>
-            <input type="text" id="program" value="Bachelor of Science in Computer Science" readonly
+            <input type="text" id="program" value="<?= htmlspecialchars($user['course']) ?>" readonly
               style="background:#f1f5f9;color:#64748b;cursor:not-allowed;" />
           </div>
 
           <div class="form-group full">
             <label for="address">Address</label>
-            <textarea id="address">123 Main Street, Quezon City, Philippines</textarea>
+            <textarea id="address"  readonly><?= htmlspecialchars($user['address']) ?></textarea>
           </div>
 
         </div>

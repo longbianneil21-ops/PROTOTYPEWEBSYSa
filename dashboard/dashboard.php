@@ -1,3 +1,27 @@
+<?php
+session_start();
+require_once '../config/config.php';
+
+// Redirect to login if not logged in
+if (!isset($_SESSION['student_id'])) {
+    header('Location: ../landingpage/login.php');
+    exit;
+}
+
+// Fetch student data from DB
+$stmt = mysqli_prepare($conn, "SELECT * FROM students WHERE student_id = ?");
+mysqli_stmt_bind_param($stmt, 's', $_SESSION['student_id']);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+$user = mysqli_fetch_assoc($result);
+$picPath = $user['profile_pic'] 
+    ? '../uploads/profile_pics/' . $user['profile_pic']
+    : null;
+
+// Get initials for avatar
+$initials = strtoupper(substr($user['first_name'], 0, 1) . substr($user['last_name'], 0, 1));
+$fullName  = $user['first_name'] . ' ' . $user['last_name'];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -93,7 +117,7 @@
     .profile-avatar {
       width: 52px; height: 52px; border-radius: 16px;
       background: linear-gradient(135deg,#7c3aed,#2563eb);
-      color: #fff; display: grid; place-items: center; font-weight: 800;
+      color: #fff; place-items: center; font-weight: 800; display: grid;
     }
     .profile-name { margin: 0; font-weight: 700; }
     .profile-email { margin: 0; color: var(--text-muted); font-size: 13px; }
@@ -187,31 +211,35 @@
       </div>
     </div>
     <nav class="sidebar-nav" aria-label="Dashboard navigation">
-      <a href="dashboard.html"    class="nav-item active"><span class="nav-item-icon">🏠</span>Dashboard</a>
-      <a href="events.html"       class="nav-item"><span class="nav-item-icon">📅</span>Events</a>
-      <a href="SchoolSched.html" class="nav-item"><span class="nav-item-icon">📋</span>Schedule</a>
-      <a href="grades.html"       class="nav-item"><span class="nav-item-icon">📝</span>Grades</a>
-      <a href="digital-id.html"   class="nav-item"><span class="nav-item-icon">🪪</span>Digital ID</a>
-      <a href="account.html"      class="nav-item"><span class="nav-item-icon">👤</span>Account</a>
+      <a href="dashboard.php"    class="nav-item active"><span class="nav-item-icon">🏠</span>Dashboard</a>
+      <a href="events.php"       class="nav-item"><span class="nav-item-icon">📅</span>Events</a>
+      <a href="SchoolSched.php" class="nav-item"><span class="nav-item-icon">📋</span>Schedule</a>
+      <a href="grades.php"       class="nav-item"><span class="nav-item-icon">📝</span>Grades</a>
+      <a href="digital-id.php"   class="nav-item"><span class="nav-item-icon">🪪</span>Digital ID</a>
+      <a href="account.php"      class="nav-item"><span class="nav-item-icon">👤</span>Account</a>
     </nav>
-    <div class="sidebar-footer">
-      <a href="../landingpage/home.html">
-        <button type="button" class="logout-button">🚪 Logout</button>
-      </a>
+    <div class="sidebar-footer"> 
+        <button type="button" class="logout-button" onclick="window.location.href='../landingpage/logout.php'">  Logout</button>
     </div>
   </aside>
 
   <!-- Main -->
   <main class="main-area">
     <header class="topbar">
-      <p class="user-greeting">Welcome back, Neil!</p>
+      <p class="user-greeting">Hello ! , <?= htmlspecialchars($fullName) ?></p>
       <div class="topbar-right">
         <button type="button" class="chatbot-btn" title="AI Assistant" onclick="alert('Chatbot coming soon!')">🤖</button>
-        <div class="profile-card">
-          <div class="profile-avatar">NL</div>
+       <div class="profile-card">
+          <div class="profile-avatar" style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden;">
+            <?php if ($picPath): ?>
+              <img src="<?= htmlspecialchars($picPath) ?>" alt="Profile Picture" style="width:100%; height:100%; object-fit:cover;" />
+            <?php else: ?>
+              <?= $initials ?>
+            <?php endif; ?>
+          </div>
           <div>
-            <p class="profile-name">Neil Longbian</p>
-            <p class="profile-email">neillongbian@gmail.com</p>
+            <p class="profile-name"><?= htmlspecialchars($fullName) ?></p>
+            <p class="profile-email"><?= htmlspecialchars($user['email']) ?></p>
           </div>
         </div>
       </div>

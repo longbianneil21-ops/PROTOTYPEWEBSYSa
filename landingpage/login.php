@@ -1,3 +1,27 @@
+<?php
+session_start();
+require_once '../config/config.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $studentId = trim($_POST['studentId'] ?? '');
+    $password  = trim($_POST['password'] ?? '');
+
+    $stmt = mysqli_prepare($conn, "SELECT * FROM students WHERE student_id = ?");
+    mysqli_stmt_bind_param($stmt, 's', $studentId);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $user = mysqli_fetch_assoc($result);
+
+    if ($user && $password === $user['password']) {
+        $_SESSION['student_id'] = $user['student_id'];
+        $_SESSION['name']       = $user['first_name'] . ' ' . $user['last_name'];
+        header('Location: ../dashboard/dashboard.php');
+        exit;
+    } else {
+        $loginError = "Invalid Student ID or password.";
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -311,7 +335,7 @@
   </style>
 </head>
 <body>
-
+<form method="POST" action="">
 <div class="card">
 
   <!-- LEFT -->
@@ -377,7 +401,7 @@
             <path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke-linecap="round"/>
           </svg>
         </span>
-        <input class="field-input" type="text" id="studentId" placeholder="2X-XXXX" autocomplete="username" />
+        <input class="field-input" type="text" id="studentId" name="studentId" placeholder="2X-XXXX" autocomplete="username" required />
       </div>
     </div>
 
@@ -390,7 +414,7 @@
             <path d="M5.5 7V5a2.5 2.5 0 015 0v2" stroke-linecap="round"/>
           </svg>
         </span>
-        <input class="field-input" type="password" id="password" placeholder="Enter your password" autocomplete="current-password"  required/>
+        <input class="field-input" type="password" id="password" placeholder="Enter your password" autocomplete="current-password" name="password" required/>
         <button class="eye-btn" id="eyeBtn" type="button" aria-label="Toggle password visibility">
           <svg id="eyeIcon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg">
             <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/>
@@ -407,22 +431,20 @@
       </label>
       <a href="#" class="forgot-link">Forgot password?</a>
     </div>
-
-    <a href="../dashboard/dashboard.html">
-      <button class="btn-login" type="button">Log In</button>
-    </a>
+      <button class="btn-login" type="submit">Log In</button>
+  
 
     <div class="divider">Don't have an account?</div>
 
-    <a href="sign-up.html">
+    <a href="sign-up.php">
       <button class="btn-signup" type="button">Sign Up</button>
     </a>
 
-    <a href="home.html" class="back-home">Back to Home</a>
+    <a href="home.php" class="back-home">Back to Home</a>
   </div>
 
 </div>
-
+<?php if (!empty($loginError)) echo "<p style='color:red;'> <br>$loginError</p>"; ?>
 <script>
   /* Eye toggle */
   const pwInput = document.getElementById('password');
@@ -437,19 +459,6 @@
     pwInput.type = visible ? 'text' : 'password';
     eyeBtn.querySelector('svg').innerHTML = visible ? eyeShut : eyeOpen;
   });
-
-  if (loginBtn) {
-    loginBtn.addEventListener('click', () => {
-      const studentId = studentIdInput?.value.trim();
-      const password = pwInput?.value.trim();
-      if (!studentId || !password) {
-        window.alert('Please enter both your Student ID and password.');
-        return;
-      }
-      window.localStorage.setItem('qcuStudentId', studentId);
-      window.location.href = 'dashboard.html';
-    });
-  }
 </script>
 
 </body>

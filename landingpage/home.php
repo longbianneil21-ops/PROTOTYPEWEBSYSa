@@ -705,10 +705,10 @@
     <li><a href="#contacts">CONTACTS</a></li>
   </ul>
   <div class="nav-actions">
-    <a href="login.html">
+    <a href="login.php">
       <button class="btn-outline">Log in</button>
     </a>
-    <a href="sign-up.html">
+    <a href="sign-up.php">
       <button class="btn-solid">SIGN UP</button>
     </a>
   </div>

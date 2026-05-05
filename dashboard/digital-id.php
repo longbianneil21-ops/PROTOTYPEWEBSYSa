@@ -1,13 +1,38 @@
+<?php
+session_start();
+require_once '../config/config.php';
+
+// Redirect to login if not logged in
+if (!isset($_SESSION['student_id'])) {
+    header('Location: ../landingpage/login.php');
+    exit;
+}
+
+// Fetch student data from DB
+$stmt = mysqli_prepare($conn, "SELECT * FROM students WHERE student_id = ?");
+mysqli_stmt_bind_param($stmt, 's', $_SESSION['student_id']);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+$user = mysqli_fetch_assoc($result);
+$picPath = $user['profile_pic'] 
+    ? '../uploads/profile_pics/' . $user['profile_pic']
+    : null;
+
+// Get initials for avatar
+$initials = strtoupper(substr($user['first_name'], 0, 1) . substr($user['last_name'], 0, 1));
+$fullName  = $user['first_name'] . ' ' . $user['last_name'];
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QCU Student Portal — Grades</title>
+  <title>QCU Student Portal — Digital ID</title>
   <link rel="icon" type="image/png" href="../images/QCU-logo.png" />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
-    *, *::before, *::after { box-sizing: border-box; }
+     *, *::before, *::after { box-sizing: border-box; }
     :root {
       font-family: 'Montserrat', sans-serif;
       --bg: #f8fafc;
@@ -43,6 +68,7 @@
       border: 1px solid rgba(255,255,255,.18);
       background: rgba(255,255,255,.12); display: grid; place-items: center; font-size: 22px;
     }
+    .nav-logo img { width: 100%; height: 100%; object-fit: cover; }
     .brand-title { display: block; font-size: 16px; font-weight: 800; letter-spacing: .5px; }
     .brand-sub { display: block; color: rgba(248,250,252,.72); font-size: 12px; margin-top: 4px; }
     .sidebar-nav { display: grid; gap: 10px; }
@@ -130,14 +156,6 @@
 
     /* ── Tabs ── */
     .view-tabs { display: flex; gap: 4px; background: var(--surface-strong); border-radius: 14px; padding: 4px; }
-    .view-tab {
-      padding: 9px 18px; border-radius: 10px; border: none;
-      background: transparent; font-size: 13px; font-weight: 600; color: var(--text-muted);
-      transition: all .2s; display: flex; align-items: center; gap: 6px;
-    }
-    .view-tab.active { background: #fff; color: var(--text); box-shadow: 0 2px 8px rgba(15,23,42,.08); }
-    .view-tab:hover:not(.active) { color: var(--text); }
-
     /* Semester selector */
     .semester-select {
       padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--border);
@@ -272,266 +290,76 @@
       .table-wrap { overflow-x: auto; }
       table { min-width: 700px; }
     }
-    .nav-logo img { width: 100%; height: 100%; object-fit: cover; }
   </style>
 </head>
 <body>
-<div class="app-shell">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="nav-logo">
+          <img src="../images/QCU-logo.png" alt="QCU Logo" />
+        </div>
+        <div>
+          <span class="brand-title">QCUS-PORTAL</span>
+          <span class="brand-sub">Student Dashboard</span>
+        </div>
+      </div>
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-brand">
-      <div class="nav-logo">
-        <img src="../images/QCU-logo.png" alt="QCU Logo" />
-      </div>
-      <div>
-        <span class="brand-title">QCUS-PORTAL</span>
-        <span class="brand-sub">Student Dashboard</span>
-      </div>
-    </div>
-    <nav class="sidebar-nav" aria-label="Dashboard navigation">
-      <a href="dashboard.html"    class="nav-item"><span class="nav-item-icon">🏠</span>Dashboard</a>
-      <a href="events.html"       class="nav-item"><span class="nav-item-icon">📅</span>Events</a>
-      <a href="SchoolSched.html" class="nav-item"><span class="nav-item-icon">📋</span>Schedule</a>
-      <a href="grades.html"       class="nav-item active"><span class="nav-item-icon">📝</span>Grades</a>
-      <a href="digital-id.html"   class="nav-item"><span class="nav-item-icon">🪪</span>Digital ID</a>
-      <a href="account.html"      class="nav-item"><span class="nav-item-icon">👤</span>Account</a>
-    </nav>
-    <div class="sidebar-footer">
-      <a href="../landingpage/home.html">
-        <button type="button" class="logout-button">🚪 Logout</button>
-      </a>
-    </div>
-  </aside>
+      <nav class="sidebar-nav" aria-label="Dashboard navigation">
+        <a href="dashboard.php" class="nav-item"><span class="nav-item-icon">🏠</span>Dashboard</a>
+        <a href="events.php" class="nav-item"><span class="nav-item-icon">📅</span>Events</a>
+        <a href="SchoolSched.php" class="nav-item"><span class="nav-item-icon">📋</span>Schedule</a>
+        <a href="grades.php" class="nav-item"><span class="nav-item-icon">📝</span>Grades</a>
+        <a href="digital-id.php" class="nav-item active"><span class="nav-item-icon">🪪</span>Digital ID</a>
+        <a href="account.php" class="nav-item"><span class="nav-item-icon">👤</span>Account</a>
+      </nav>
 
-  <!-- Main -->
-  <main class="main-area">
-    <header class="topbar">
-      <div>
-        <p class="user-greeting">Welcome back, Student!</p>
-        <h1 class="page-title">Grades</h1>
+      <div class="sidebar-footer">
+          <button type="button" class="logout-button" onclick="window.location.href='../landingpage/logout.php'">>Logout</button>
       </div>
-      <div class="topbar-right">
-        <button type="button" class="chatbot-btn" title="AI Assistant" onclick="alert('Chatbot coming soon!')">🤖</button>
-        <div class="profile-card">
-          <div class="profile-avatar">NL</div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div>
+          <p class="user-greeting">Welcome back, Student!</p>
+          <h1 class="page-title">Digital ID</h1>
+        </div>
+         <div class="topbar-right">
+    <button type="button" class="chatbot-btn" title="AI Assistant" onclick="alert('Chatbot coming soon!')">
+      
+    </button>
+       <div class="profile-card">
+          <div class="profile-avatar" style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden;">
+            <?php if ($picPath): ?>
+              <img src="<?= htmlspecialchars($picPath) ?>" alt="Profile Picture" style="width:100%; height:100%; object-fit:cover;" />
+            <?php else: ?>
+              <?= $initials ?>
+            <?php endif; ?>
+          </div>
           <div>
-            <p class="profile-name">Neil Longbian</p>
-            <p class="profile-email">neillongbian@gmail.com</p>
+            <p class="profile-name"><?= htmlspecialchars($fullName) ?></p>
+            <p class="profile-email"><?= htmlspecialchars($user['email']) ?></p>
           </div>
         </div>
       </div>
-    </header>
+      </header>
 
-    <!-- Stat Cards -->
-    <div class="stat-grid">
-      <div class="stat-card blue">
-        <div class="stat-label">Current GPA</div>
-        <div class="stat-value">1.50</div>
-        <div class="stat-sub">Grade Point Average</div>
-      </div>
-      <div class="stat-card green">
-        <div class="stat-label">Total Units</div>
-        <div class="stat-value">16</div>
-        <div class="stat-sub">Units Completed</div>
-      </div>
-      <div class="stat-card amber">
-        <div class="stat-label">Subjects</div>
-        <div class="stat-value">6</div>
-        <div class="stat-sub">Total Enrolled</div>
-      </div>
-      <div class="stat-card purple">
-        <div class="stat-label">Status</div>
-        <div class="stat-value" style="font-size:26px;">All Passed</div>
-        <div class="stat-sub">Semester Status</div>
-      </div>
-    </div>
-
-    <!-- Grade Report -->
-    <div class="card">
-      <div class="report-header">
-        <h2>Grade Report</h2>
-        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-          <!-- View toggle: Table | Weekly -->
-          <div class="view-tabs">
+      <section class="view-section">
+        <div class="section-panel">
+          <div class="section-header">
+            <h2>Digital ID</h2>
+            <p>Your digital ID card is a placeholder until student verification is completed.</p>
           </div>
-          <select class="semester-select" id="semesterSelect" onchange="changeSemester(this.value)">
-            <option value="1st-2526">1st Semester 2025-2026</option>
-            <option value="2nd-2526">2nd Semester 2025-2026</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Table View -->
-      <div id="tableView">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Course</th>
-                <th>Units</th>
-                <th>Schedule</th>
-                <th>Grade</th>
-                <th>Numeric</th>
-                <th>Status</th>
-                <th>Professor</th>
-              </tr>
-            </thead>
-            <tbody id="gradesBody"></tbody>
-            <tfoot>
-              <tr class="tfoot-row">
-                <td><span class="totals-label">Semester Totals</span></td>
-                <td><span class="units-val" id="totalUnits">16</span></td>
-                <td></td>
-                <td></td>
-                <td colspan="2"><span class="totals-label">Semester GPA:</span></td>
-                <td><span class="totals-gpa" id="semesterGpa">1.50</span></td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-
-      <!-- Weekly View Unavailable -->
-      <div class="weekly-unavailable" id="weeklyView">
-        <div class="weekly-icon">🗓️</div>
-        <h3>Weekly View Coming Soon</h3>
-        <p>The weekly schedule view is currently under development.<br>Please use the Table View to check your grades for now.</p>
-        <span class="coming-soon-badge">🚧 Under Development</span>
-      </div>
-
-      <!-- Grading Scale -->
-      <div style="margin-top:24px;">
-        <p class="scale-title">QCU Grading Scale</p>
-        <div class="scale-grid">
-          <div class="scale-item scale-A">
-            <div class="scale-letter">A</div>
-            <div class="scale-range">1.00 – 1.25</div>
-            <div class="scale-desc">Excellent</div>
-          </div>
-          <div class="scale-item scale-Bp">
-            <div class="scale-letter">B+</div>
-            <div class="scale-range">1.50 – 1.75</div>
-            <div class="scale-desc">Very Good</div>
-          </div>
-          <div class="scale-item scale-B">
-            <div class="scale-letter">B</div>
-            <div class="scale-range">2.00 – 2.25</div>
-            <div class="scale-desc">Good</div>
-          </div>
-          <div class="scale-item scale-Cp">
-            <div class="scale-letter">C+</div>
-            <div class="scale-range">2.50 – 2.75</div>
-            <div class="scale-desc">Satisfactory</div>
-          </div>
-          <div class="scale-item scale-C">
-            <div class="scale-letter">C</div>
-            <div class="scale-range">3.00</div>
-            <div class="scale-desc">Passing</div>
-          </div>
-          <div class="scale-item scale-D">
-            <div class="scale-letter">D</div>
-            <div class="scale-range">4.00</div>
-            <div class="scale-desc">Conditional</div>
-          </div>
-          <div class="scale-item scale-F">
-            <div class="scale-letter">F</div>
-            <div class="scale-range">5.00</div>
-            <div class="scale-desc">Failed</div>
-          </div>
-          <div class="scale-item scale-INC">
-            <div class="scale-letter">INC</div>
-            <div class="scale-range">—</div>
-            <div class="scale-desc">Incomplete</div>
+          <div class="placeholder-block">
+            <span>🪪</span>
+            <p>This section will display your official QCUS digital student ID in the future.</p>
           </div>
         </div>
-      </div>
+      </section>
+    </main>
+  </div>
 
-      <!-- Action Buttons -->
-      <div class="action-bar">
-        <button type="button" class="action-btn btn-pdf">📄 Download Grade Report (PDF)</button>
-        <button type="button" class="action-btn btn-email" style="border:1.5px solid var(--border);">✉️ Email Grade Report</button>
-        <button type="button" class="action-btn btn-past"  style="border:1.5px solid var(--border);">🕐 View Past Semesters</button>
-      </div>
-    </div>
-  </main>
-</div>
-
-<script>
-  /* ── Grade data per semester ── */
-  const semesters = {
-    "1st-2526": {
-      gpa: "1.50",
-      courses: [
-        { code:"CS 101",   name:"Introduction to Computer Science",  units:3, sched:"MWF 9:00 AM – 10:30 AM",  grade:"A",  numeric:"1.25", status:"Passed",  prof:"Dr. Maria Santos" },
-        { code:"MATH 201", name:"Calculus II",                        units:3, sched:"TTh 10:45 AM – 12:15 PM", grade:"B+", numeric:"1.75", status:"Passed",  prof:"Prof. Juan Dela Cruz" },
-        { code:"ENG 103",  name:"Technical Writing",                  units:3, sched:"MWF 1:00 PM – 2:30 PM",  grade:"A",  numeric:"1.25", status:"Passed",  prof:"Dr. Ana Reyes" },
-        { code:"PHYS 101", name:"Physics for Engineers",              units:4, sched:"TTh 2:45 PM – 4:45 PM",  grade:"B",  numeric:"2.00", status:"Passed",  prof:"Prof. Roberto Garcia" },
-        { code:"PE 101",   name:"Physical Education – Fitness",       units:2, sched:"Sat 8:00 AM – 10:00 AM", grade:"A",  numeric:"1.00", status:"Passed",  prof:"Coach Linda Fernandez" },
-        { code:"CS 102L",  name:"Computer Programming Lab",           units:1, sched:"F 3:00 PM – 5:00 PM",    grade:"A",  numeric:"1.25", status:"Passed",  prof:"Engr. Mark Villanueva" },
-      ]
-    },
-    "2nd-2526": {
-      gpa: "1.75",
-      courses: [
-        { code:"CS 201",   name:"Data Structures",                   units:3, sched:"MWF 8:00 AM – 9:30 AM",   grade:"A",  numeric:"1.25", status:"Passed", prof:"Dr. Maria Santos" },
-        { code:"MATH 301", name:"Differential Equations",            units:3, sched:"TTh 9:00 AM – 10:30 AM",  grade:"B+", numeric:"1.75", status:"Passed", prof:"Prof. Juan Dela Cruz" },
-        { code:"CS 203",   name:"Computer Organization",             units:3, sched:"MWF 1:00 PM – 2:30 PM",   grade:"B",  numeric:"2.00", status:"Passed", prof:"Engr. Mark Villanueva" },
-        { code:"ENG 201",  name:"Speech Communication",              units:3, sched:"TTh 2:00 PM – 3:30 PM",   grade:"A",  numeric:"1.25", status:"Passed", prof:"Dr. Ana Reyes" },
-        { code:"NSTP 101", name:"National Service Training Program",  units:3, sched:"Sat 7:00 AM – 10:00 AM", grade:"A",  numeric:"1.00", status:"Passed", prof:"Lt. Jose Bautista" },
-      ]
-    },
-  };
-
-  const gradeClasses = { A:"grade-A", "B+":"grade-Bp", B:"grade-B", "C+":"grade-Cp", C:"grade-C", D:"grade-D", F:"grade-F" };
-
-  function renderGrades(semKey) {
-    const data = semesters[semKey];
-    const body = document.getElementById("gradesBody");
-    let totalUnits = 0;
-    body.innerHTML = data.courses.map(c => {
-      totalUnits += c.units;
-      const gc = gradeClasses[c.grade] || "grade-A";
-      return `
-        <tr>
-          <td>
-            <div class="course-name">${c.code}</div>
-            <div class="course-sub">${c.name}</div>
-          </td>
-          <td><span class="units-val">${c.units}</span></td>
-          <td style="color:var(--text-muted);font-size:12px;">${c.sched}</td>
-          <td><span class="grade-pill ${gc}">${c.grade}</span></td>
-          <td style="font-weight:600;">${c.numeric}</td>
-          <td><span class="status-pill status-${c.status.toLowerCase()}">${c.status}</span></td>
-          <td style="color:var(--text-muted);font-size:12px;">${c.prof}</td>
-        </tr>`;
-    }).join("");
-    document.getElementById("totalUnits").textContent = totalUnits;
-    document.getElementById("semesterGpa").textContent = data.gpa;
-  }
-
-  function changeSemester(val) { renderGrades(val); }
-
-  function switchView(view) {
-    const tableView  = document.getElementById("tableView");
-    const weeklyView = document.getElementById("weeklyView");
-    const tabTable   = document.getElementById("tabTable");
-    const tabWeekly  = document.getElementById("tabWeekly");
-    if (view === "table") {
-      tableView.style.display = "block";
-      weeklyView.classList.remove("show");
-      tabTable.classList.add("active");
-      tabWeekly.classList.remove("active");
-    } else {
-      tableView.style.display = "none";
-      weeklyView.classList.add("show");
-      tabTable.classList.remove("active");
-      tabWeekly.classList.add("active");
-    }
-  }
-
-  /* ── Init ── */
-  renderGrades("1st-2526");
-</script>
+  <script src="../scripts/dashboard-script.js"></script>
 </body>
 </html>

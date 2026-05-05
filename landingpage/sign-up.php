@@ -309,14 +309,14 @@
           <label class="field-label" for="firstName">First Name <span class="req">*</span></label>
           <div class="input-wrap">
             <!-- Added name="firstName" -->
-            <input class="field-input" type="text" id="firstName" name="firstName" placeholder="Juan" autocomplete="given-name" />
+            <input class="field-input" type="text" id="firstName" name="firstName" placeholder="Juan" autocomplete="given-name" required/>
           </div>
         </div>
         <div class="field-group">
           <label class="field-label" for="lastName">Last Name <span class="req">*</span></label>
           <div class="input-wrap">
             <!-- Added name="lastName" -->
-            <input class="field-input" type="text" id="lastName" name="lastName" placeholder="Dela Cruz" autocomplete="family-name" />
+            <input class="field-input" type="text" id="lastName" name="lastName" placeholder="Dela Cruz" autocomplete="family-name" required/>
           </div>
         </div>
       </div>
@@ -326,7 +326,7 @@
         <label class="field-label" for="middleName">Middle Name</label>
         <div class="input-wrap">
           <!-- Added name="middleName" -->
-          <input class="field-input" type="text" id="middleName" name="middleName" placeholder="Santos" autocomplete="additional-name" />
+          <input class="field-input" type="text" id="middleName" name="middleName" placeholder="Santos" autocomplete="additional-name" required/>
         </div>
       </div>
 
@@ -345,7 +345,7 @@
         <label class="field-label" for="phoneNumber">Phone Number <span class="req">*</span></label>
         <div class="input-wrap">
           <!-- Added name="phoneNumber" -->
-          <input class="field-input" type="tel" id="phoneNumber" name="phoneNumber" placeholder="+63 912 345 6789" autocomplete="tel" />
+          <input class="field-input" type="tel" id="phoneNumber" name="phoneNumber" placeholder="+63 912 345 6789" autocomplete="tel" required/>
         </div>
       </div>
 
@@ -354,7 +354,7 @@
         <label class="field-label" for="address">Address <span class="req">*</span></label>
         <div class="input-wrap">
           <!-- Added name="address" -->
-          <input class="field-input" type="text" id="address" name="address" placeholder="123 Main Street, Quezon City, Philippines" autocomplete="street-address" />
+          <input class="field-input" type="text" id="address" name="address" placeholder="123 Main Street, Quezon City, Philippines" autocomplete="street-address" required/>
         </div>
       </div>
 
@@ -363,9 +363,19 @@
         <label class="field-label" for="birthday">Birthday <span class="req">*</span></label>
         <div class="input-wrap">
           <!-- Added name="birthday" -->
-          <input class="field-input" type="date" id="birthday" name="birthday" autocomplete="bday" />
+          <input class="field-input" type="date" id="birthday" name="birthday" autocomplete="bday" required/>
         </div>
       </div>
+      <div class="form-group">
+        <label for="gender">Gender</label>
+        <select class="field-input" id="gender" name="gender">
+      <option value="" disabled selected>Select your gender</option>
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
+      <option value="Non-binary">Non-binary</option>
+      <option value="Prefer not to say">Prefer not to say</option>
+      </select>
+        </div>
 
       <!-- Course Dropdown -->
       <div class="field-group">
@@ -374,15 +384,15 @@
           <!-- Added name="course" -->
           <select class="field-input" id="course" name="course" autocomplete="off">
             <option value="">Select your course</option>
-            <option value="BSCS">Bachelor of Science in Computer Science</option>
-            <option value="BSED">Bachelor of Science in Education</option>
-            <option value="BSN">Bachelor of Science in Nursing</option>
-            <option value="BSBA">Bachelor of Science in Business Administration</option>
-            <option value="BSA">Bachelor of Science in Accountancy</option>
-            <option value="BSENG">Bachelor of Science in Engineering</option>
-            <option value="BSHM">Bachelor of Science in Hospitality Management</option>
-            <option value="BSCRIM">Bachelor of Science in Criminology</option>
-            <option value="BSPSYCH">Bachelor of Science in Psychology</option>
+            <option value="Bachelor of Science in Computer Science">Bachelor of Science in Computer Science</option>
+            <option value="Bachelor of Science in Education">Bachelor of Science in Education</option>
+            <option value="Bachelor of Science in Nursing">Bachelor of Science in Nursing</option>
+            <option value="Bachelor of Science in Business Administration">Bachelor of Science in Business Administration</option>
+            <option value="Bachelor of Science in Accountancy">Bachelor of Science in Accountancy</option>
+            <option value="Bachelor of Science in Engineering">Bachelor of Science in Engineering</option>
+            <option value="Bachelor of Science in Hospitality Management">Bachelor of Science in Hospitality Management</option>
+            <option value="Bachelor of Science in Criminology">Bachelor of Science in Criminology</option>
+            <option value="Bachelor of Science in Psychology">Bachelor of Science in Psychology</option>
           </select>
         </div>
       </div>
@@ -407,7 +417,7 @@
         <label class="field-label" for="password">Password <span class="req">*</span></label>
         <div class="input-wrap">
           <!-- Added name="password" -->
-          <input class="field-input" type="password" id="password" name="password" placeholder="Create a strong password" autocomplete="new-password" />
+          <input class="field-input" type="password" id="password" name="password" placeholder="Create a strong password" autocomplete="new-password" required/>
           <button class="eye-btn" id="eyeBtn1" type="button" aria-label="Toggle password">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
           </button>
@@ -420,7 +430,7 @@
         <label class="field-label" for="confirmPassword">Confirm Password <span class="req">*</span></label>
         <div class="input-wrap">
           <!-- Added name="confirmPassword" -->
-          <input class="field-input" type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter your password" autocomplete="new-password" />
+          <input class="field-input" type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter your password" autocomplete="new-password" required />
           <button class="eye-btn" id="eyeBtn2" type="button" aria-label="Toggle confirm password">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
           </button>
@@ -430,7 +440,7 @@
       <!-- Terms -->
       <div class="terms-row">
         <!-- Added name="terms" and value for PHP access -->
-        <input type="checkbox" id="terms" name="terms" value="agreed" />
+        <input type="checkbox" id="terms" name="terms" value="agreed" required />
         <span>I agree to the <a href="#">Terms and Conditions</a> and <a href="#">Privacy Policy</a></span>
       </div>
 
@@ -441,11 +451,11 @@
 
     <div class="divider">Already have an account?</div>
 
-    <a href="login.html">
+    <a href="login.php">
         <button class="btn-login" type="button">Log In</button>
     </a>
 
-    <a href="home.html" class="back-home">Back to Home</a>
+    <a href="home.php" class="back-home">Back to Home</a>
   </div>
 
   <!-- ── RIGHT — INFO ── -->
